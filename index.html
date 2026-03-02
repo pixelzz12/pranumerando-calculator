@@ -11,6 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <!-- p5.js untuk galaxy background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <!-- iro.js untuk color wheel -->
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5.5.2/dist/iro.min.js"></script>
     <style>
         /* ===== VARIABEL & RESET ===== */
         * {
@@ -33,6 +39,7 @@
             --shadow-hover: 0 20px 40px rgba(0,0,0,0.3);
             --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --custom-bg: none; /* untuk custom color */
         }
 
         body {
@@ -52,14 +59,19 @@
             --text-light: #4a5568;
         }
 
-        /* ===== BACKGROUND PIXEL EFFECT ===== */
-        #pixel-canvas {
+        body.custom-bg {
+            background: var(--custom-bg);
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ===== GALAXY BACKGROUND (p5.js canvas) ===== */
+        #galaxy-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: -2;
             pointer-events: none;
         }
 
@@ -95,20 +107,20 @@
             animation: fadeInUp 0.6s ease-out 0.1s both;
         }
 
-        /* ===== SPLASH SCREEN ===== */
+        /* ===== SPLASH SCREEN (dengan partikel interaktif) ===== */
         #splashOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.8s ease;
         }
         #splashContent {
             background: white;
@@ -119,10 +131,27 @@
             width: 90%;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        #splashContent::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: -1;
         }
         @keyframes popIn {
             0% { transform: scale(0.5); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         #splashContent h1 {
             font-family: 'Playfair Display', serif;
@@ -138,12 +167,20 @@
             background: #f0f4f8;
             padding: 20px;
             border-radius: 20px;
+            border: 1px solid rgba(102,126,234,0.2);
         }
         #splashContent .group-list li {
             list-style: none;
             padding: 8px 0;
             border-bottom: 1px dashed #ccc;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #splashContent .group-list li i {
+            color: var(--primary);
+            font-size: 12px;
         }
         #splashContent button {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -156,6 +193,24 @@
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(102,126,234,0.4);
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        #splashContent button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+        #splashContent button:hover::after {
+            width: 300px;
+            height: 300px;
         }
         #splashContent button:hover {
             transform: scale(1.05);
@@ -174,6 +229,7 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            backdrop-filter: blur(5px);
         }
         .loader {
             width: 80px;
@@ -188,6 +244,65 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* ===== MASKOT ANIMASI ===== */
+        #mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1000;
+            animation: float 3s ease-in-out infinite;
+        }
+        #mascot:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.6);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        #mascot-tooltip {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            margin-bottom: 10px;
+        }
+        #mascot:hover #mascot-tooltip {
+            opacity: 1;
+        }
+
+        /* ===== EFEK HOVER 3D PADA KARTU ===== */
+        .card, .info-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .card:hover, .info-card:hover {
+            transform: translateY(-5px) scale(1.01) rotateX(2deg) rotateY(2deg);
+            box-shadow: var(--shadow-hover);
+        }
+
         /* ===== CARD & ANIMASI ===== */
         .card, .info-card {
             background: var(--card-bg);
@@ -196,12 +311,7 @@
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
-            transition: var(--transition);
             animation: cardPop 0.5s ease-out;
-        }
-        .card:hover, .info-card:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-5px) scale(1.01);
         }
 
         @keyframes fadeInUp {
@@ -240,7 +350,7 @@
             color: var(--text-light);
         }
 
-        /* Rumus box dengan gambar */
+        /* Rumus box */
         .rumus-box {
             background: linear-gradient(135deg, #f8fafc, #edf2f7);
             padding: 20px;
@@ -498,7 +608,7 @@
             color: var(--dark);
         }
 
-        /* Grafik - disembunyikan saat belum aktif */
+        /* Grafik */
         .chart-container {
             margin-top: 30px;
             height: 200px;
@@ -515,7 +625,7 @@
             display: block;
         }
 
-        /* Tabel - disembunyikan saat belum aktif */
+        /* Tabel */
         #amortisasiSection {
             display: none;
         }
@@ -602,6 +712,30 @@
             transform: rotate(90deg);
         }
 
+        /* Color Wheel Modal */
+        #colorWheelContainer {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        #colorValue {
+            text-align: center;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .apply-color-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            width: 100%;
+        }
+
         /* Skenario */
         .scenario-list {
             display: flex;
@@ -685,7 +819,7 @@
             .main-container {
                 display: block;
             }
-            .info-section, .presentation-menu, .feature-btn, .btn-group, .modal, #pixel-canvas, #splashOverlay, #loadingOverlay {
+            .info-section, .presentation-menu, .feature-btn, .btn-group, .modal, #galaxy-canvas, #splashOverlay, #loadingOverlay, #mascot {
                 display: none !important;
             }
             .card, .info-card {
@@ -697,6 +831,9 @@
     </style>
 </head>
 <body>
+    <!-- Galaxy Background (p5.js) -->
+    <div id="galaxy-canvas"></div>
+
     <!-- Splash Screen -->
     <div id="splashOverlay">
         <div id="splashContent">
@@ -705,12 +842,12 @@
             <div class="group-list">
                 <h3 style="margin-bottom: 10px;">👥 Anggota Kelompok:</h3>
                 <ul>
-                    <li>Aisyah Vania Ditama (3)</li>
-                    <li>Annisa Rahma Agustina (4)</li>
-                    <li>Keisya Narnaya Sabilla (30)</li>
-                    <li>M. Rasyad Abdillah (28)</li>
-                    <li>M. Syahdan Herdhiyanta (29)</li>
-                    <li>Nada Sabrina Hakim (30)</li>
+                    <li><i class="fas fa-star"></i> Aisyah Vania Ditama (3)</li>
+                    <li><i class="fas fa-star"></i> Annisa Rahma Agustina (4)</li>
+                    <li><i class="fas fa-star"></i> Keisya Narnaya Sabilla (20)</li>
+                    <li><i class="fas fa-star"></i> M. Rasyad Abdillah (28)</li>
+                    <li><i class="fas fa-star"></i> M. Syahdan Herdhiyanta (29)</li>
+                    <li><i class="fas fa-star"></i> Nada Sabrina Hakim (30)</li>
                 </ul>
             </div>
             <button id="startButton">Mulai <i class="fas fa-arrow-right"></i></button>
@@ -722,8 +859,11 @@
         <div class="loader"></div>
     </div>
 
-    <!-- Canvas untuk pixel effect -->
-    <canvas id="pixel-canvas"></canvas>
+    <!-- Maskot Animasi -->
+    <div id="mascot">
+        <i class="fas fa-calculator"></i>
+        <div id="mascot-tooltip">Halo! Ayo hitung 👋</div>
+    </div>
 
     <!-- Panel menu presentasi -->
     <div id="presentationMenu" class="presentation-menu" style="display: none;">
@@ -812,6 +952,20 @@
             </div>
             <button class="btn-primary" onclick="hitungInversLanjutan()" style="width:100%;">Hitung</button>
             <div id="hasilInversLanjutan" style="margin-top:20px; text-align:center; font-weight:bold;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL COLOR WHEEL -->
+    <div id="colorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-palette"></i> Pilih Warna Background</h3>
+                <button class="close-btn" onclick="tutupColorModal()">&times;</button>
+            </div>
+            <div id="colorWheelContainer"></div>
+            <div id="colorValue">Warna: #667eea</div>
+            <button class="apply-color-btn" onclick="applyCustomColor()">Terapkan Warna</button>
+            <button class="apply-color-btn" style="background: #e2e8f0; color:#333; margin-top:5px;" onclick="resetToGalaxy()">Kembali ke Galaxy</button>
         </div>
     </div>
 
@@ -990,7 +1144,7 @@
                     <button class="feature-btn" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> Ekspor CSV</button>
                     <button class="feature-btn" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
                     <button class="feature-btn" onclick="cetak()"><i class="fas fa-print"></i> Cetak</button>
-                    <button class="feature-btn" onclick="gantiTema()"><i class="fas fa-palette"></i> Ganti Tema</button>
+                    <button class="feature-btn" onclick="showColorModal()"><i class="fas fa-palette"></i> Pilih Warna</button>
                     <button class="feature-btn" onclick="toggleFullScreen()"><i class="fas fa-expand"></i> Layar Penuh</button>
                     <button class="feature-btn" onclick="simpanSkenario()"><i class="fas fa-save"></i> Simpan Skenario</button>
                     <button class="feature-btn" onclick="tampilkanTutorial()"><i class="fas fa-question-circle"></i> Bantuan</button>
@@ -1028,6 +1182,126 @@
     </div>
 
     <script>
+        // ===== GALAXY BACKGROUND (p5.js) - Lebih berkilau dan interaktif =====
+        function sketch(p) {
+            let particles = [];
+            let stars = [];
+            let mouseX = 0, mouseY = 0;
+
+            p.setup = function() {
+                let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+                canvas.parent('galaxy-canvas');
+                p.noStroke();
+
+                // Inisialisasi bintang (lebih banyak)
+                for (let i = 0; i < 400; i++) {
+                    stars.push({
+                        x: p.random(p.width),
+                        y: p.random(p.height),
+                        size: p.random(0.5, 3),
+                        brightness: p.random(100, 255),
+                        twinkleSpeed: p.random(0.01, 0.05),
+                        twinklePhase: p.random(p.TWO_PI)
+                    });
+                }
+
+                // Inisialisasi partikel galaxy (lebih banyak)
+                for (let i = 0; i < 150; i++) {
+                    particles.push({
+                        x: p.random(p.width),
+                        y: p.random(p.height),
+                        vx: p.random(-0.8, 0.8),
+                        vy: p.random(-0.8, 0.8),
+                        size: p.random(2, 8),
+                        color: p.color(
+                            p.random(100, 255),
+                            p.random(100, 200),
+                            p.random(200, 255),
+                            80
+                        ),
+                        originalColor: null
+                    });
+                    particles[i].originalColor = particles[i].color;
+                }
+            };
+
+            p.draw = function() {
+                p.clear();
+                p.background(0, 0, 0, 0); // transparan
+
+                // Gambar bintang dengan efek kedip
+                for (let star of stars) {
+                    let twinkle = 0.5 + 0.5 * p.sin(p.millis() * star.twinkleSpeed + star.twinklePhase);
+                    p.fill(255, star.brightness * twinkle);
+                    p.ellipse(star.x, star.y, star.size * (0.8 + 0.4 * p.sin(p.millis() * 0.01)));
+                }
+
+                // Efek interaktif: partikel menjauh dari mouse
+                let mouseDist = 50;
+                for (let part of particles) {
+                    // Hitung jarak ke mouse
+                    let d = p.dist(part.x, part.y, mouseX, mouseY);
+                    if (d < mouseDist) {
+                        // Dorong partikel menjauh
+                        let angle = p.atan2(part.y - mouseY, part.x - mouseX);
+                        let force = (mouseDist - d) / mouseDist * 2;
+                        part.x += p.cos(angle) * force;
+                        part.y += p.sin(angle) * force;
+                    }
+
+                    p.fill(part.color);
+                    p.ellipse(part.x, part.y, part.size);
+
+                    part.x += part.vx;
+                    part.y += part.vy;
+
+                    // Wrap around
+                    if (part.x < 0) part.x = p.width;
+                    if (part.x > p.width) part.x = 0;
+                    if (part.y < 0) part.y = p.height;
+                    if (part.y > p.height) part.y = 0;
+                }
+            };
+
+            p.mouseMoved = function() {
+                mouseX = p.mouseX;
+                mouseY = p.mouseY;
+            };
+
+            p.windowResized = function() {
+                p.resizeCanvas(p.windowWidth, p.windowHeight);
+                // Update posisi bintang
+                stars = [];
+                for (let i = 0; i < 400; i++) {
+                    stars.push({
+                        x: p.random(p.width),
+                        y: p.random(p.height),
+                        size: p.random(0.5, 3),
+                        brightness: p.random(100, 255),
+                        twinkleSpeed: p.random(0.01, 0.05),
+                        twinklePhase: p.random(p.TWO_PI)
+                    });
+                }
+            };
+        }
+
+        // Inisialisasi p5.js
+        new p5(sketch);
+
+        // ===== MASKOT =====
+        const mascot = document.getElementById('mascot');
+        const messages = ['Halo! Ayo hitung 👋', 'Masukkan angka dulu ya!', 'PV = M × faktor × (1+i)', 'Siap presentasi?', 'Kelompok 2 terbaik!'];
+        let msgIndex = 0;
+
+        mascot.addEventListener('click', function() {
+            msgIndex = (msgIndex + 1) % messages.length;
+            document.getElementById('mascot-tooltip').innerText = messages[msgIndex];
+            // Animasi bounce
+            this.style.animation = 'none';
+            this.offsetHeight; // reflow
+            this.style.animation = 'float 3s ease-in-out infinite';
+        });
+
         // ===== SPLASH SCREEN & LOADING =====
         document.getElementById('startButton').addEventListener('click', function() {
             document.getElementById('splashOverlay').style.opacity = '0';
@@ -1040,61 +1314,12 @@
             }, 500);
         });
 
-        // ===== PIXEL EFFECT BACKGROUND =====
-        const canvas = document.getElementById('pixel-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        let particles = [];
-
-        function initCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            for (let i = 0; i < 50; i++) {
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    size: Math.random() * 6 + 2,
-                    color: `hsl(${Math.random() * 360}, 70%, 60%)`
-                });
-            }
-        }
-
-        function drawParticles() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.shadowColor = p.color;
-                ctx.shadowBlur = 10;
-                ctx.fill();
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
-            });
-            requestAnimationFrame(drawParticles);
-        }
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
-
-        initCanvas();
-        drawParticles();
-
         // ===== VARIABEL GLOBAL =====
         let chartInstance = null;
         let comparisonChartInstance = null;
         let currentPV = 0, currentM = 0, currentRate = 0, currentN = 0;
         let presentationMode = false;
+        let sudahConfetti = false;
 
         // ===== FUNGSI VALIDASI =====
         function validasiInput(m, rate, n) {
@@ -1105,7 +1330,7 @@
             return true;
         }
 
-        // ===== FUNGSI KALKULATOR (NILAI SEKARANG) =====
+        // ===== FUNGSI KALKULATOR =====
         function hitungPranumerando() {
             let m = parseFloat(document.getElementById('pembayaran').value);
             let rate = parseFloat(document.getElementById('bunga').value);
@@ -1154,7 +1379,17 @@
         }
 
         function hitungDanTampilkan() {
-            hitungPranumerando();
+            let hasil = hitungPranumerando();
+            if (hasil && !sudahConfetti) {
+                // Efek confetti
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c']
+                });
+                sudahConfetti = true;
+            }
         }
 
         function formatUang(angka, currency = 'Rp') {
@@ -1265,6 +1500,7 @@
             document.getElementById('amortisasiSection').classList.remove('active');
             if (chartInstance) chartInstance.destroy();
             if (comparisonChartInstance) comparisonChartInstance.destroy();
+            sudahConfetti = false; // reset confetti untuk sesi baru
         }
 
         // ===== UPLOAD GAMBAR RUMUS =====
@@ -1362,6 +1598,43 @@
             document.getElementById('hasilInversLanjutan').innerHTML = hasil;
         }
 
+        // ===== FITUR COLOR WHEEL =====
+        let colorPicker;
+        function showColorModal() {
+            document.getElementById('colorModal').classList.add('active');
+            if (!colorPicker) {
+                colorPicker = new iro.ColorPicker('#colorWheelContainer', {
+                    width: 200,
+                    color: '#667eea',
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    layout: [
+                        { component: iro.ui.Wheel }
+                    ]
+                });
+                colorPicker.on('color:change', function(color) {
+                    document.getElementById('colorValue').innerText = 'Warna: ' + color.hexString;
+                });
+            }
+        }
+        function tutupColorModal() {
+            document.getElementById('colorModal').classList.remove('active');
+        }
+        function applyCustomColor() {
+            if (colorPicker) {
+                let color = colorPicker.color.hexString;
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('custom-bg');
+                document.body.style.setProperty('--custom-bg', color);
+            }
+            tutupColorModal();
+        }
+        function resetToGalaxy() {
+            document.body.classList.remove('custom-bg', 'light-theme');
+            document.body.style.removeProperty('--custom-bg');
+            tutupColorModal();
+        }
+
         // ===== FITUR KODE PROGRAM =====
         function tampilkanKodeProgram() {
             let kode = document.documentElement.outerHTML;
@@ -1439,20 +1712,6 @@
             doc.text(`Periode (n): ${currentN}`, 10, 40);
             doc.text(`Nilai Sekarang (PV): ${formatUang(currentPV, currency)}`, 10, 50);
             doc.save('kalkulasi_pranumerando_pv.pdf');
-        }
-
-        function gantiTema() {
-            document.body.classList.toggle('light-theme');
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
         }
 
         function cetak() {
