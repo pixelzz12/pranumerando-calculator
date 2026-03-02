@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjelasan Kode - Kalkulator Pranumerando</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #2d3748;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .panel {
+            flex: 1 1 45%;
+            min-width: 450px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .panel h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .code-container {
+            background: #1e1e3f;
+            border-radius: 16px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #f8f8f2;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .code-line {
+            display: block;
+            white-space: pre-wrap;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .code-line.highlight {
+            background: #ffb86b;
+            color: #1e1e3f;
+            font-weight: 500;
+        }
+        .calc-panel {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper .currency-symbol,
+        .input-wrapper .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+            width: 30px;
+            text-align: center;
+            pointer-events: none;
+        }
+        .input-wrapper input, .input-wrapper select {
+            width: 100%;
+            padding: 14px 14px 14px 60px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s;
+        }
+        .input-wrapper input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            outline: none;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .btn-primary, .btn-secondary {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        .result-box {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            display: none;
+        }
+        .result-box.active {
+            display: block;
+        }
+        .result-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .result-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .back-link {
+            margin-bottom: 20px;
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .legend {
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #a0aec0;
+        }
+        .legend i {
+            color: #ffb86b;
+        }
+    </style>
+</head>
+<body>
+    <a href="#" onclick="history.back()" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Kalkulator Utama</a>
+    <div class="container">
+        <!-- Panel Kiri: Kode Program -->
+        <div class="panel">
+            <h2><i class="fas fa-code"></i> Kode Inti Perhitungan</h2>
+            <div class="legend"><i class="fas fa-lightbulb"></i> Saat Anda mengetik di input, baris terkait akan menyala. Saat tekan Hitung, baris perhitungan dan hasil akan menyala.</div>
+            <div class="code-container" id="codeContainer">
+                <span class="code-line" id="line1">1   let m = parseFloat(document.getElementById('pembayaran').value);</span>
+                <span class="code-line" id="line2">2   let rate = parseFloat(document.getElementById('bunga').value);</span>
+                <span class="code-line" id="line3">3   let n = parseInt(document.getElementById('periode').value);</span>
+                <span class="code-line" id="line4">4   let i = rate / 100;</span>
+                <span class="code-line" id="line5">5   let factor;</span>
+                <span class="code-line" id="line6">6   if (i === 0) factor = n;</span>
+                <span class="code-line" id="line7">7   else factor = (1 - Math.pow(1 + i, -n)) / i;</span>
+                <span class="code-line" id="line8">8   let pv = m * factor * (1 + i);</span>
+                <span class="code-line" id="line9">9   let totalPokok = m * n;</span>
+                <span class="code-line" id="line10">10  let diskonto = totalPokok - pv;</span>
+                <span class="code-line" id="line11">11  // Tampilkan hasil</span>
+                <span class="code-line" id="line12">12  document.getElementById('nilaiTotal').innerText = formatUang(pv);</span>
+                <span class="code-line" id="line13">13  document.getElementById('totalBayar').innerText = formatUang(totalPokok);</span>
+                <span class="code-line" id="line14">14  document.getElementById('totalBunga').innerText = formatUang(diskonto);</span>
+            </div>
+        </div>
+
+        <!-- Panel Kanan: Kalkulator Interaktif -->
+        <div class="panel">
+            <h2><i class="fas fa-calculator"></i> Kalkulator Pranumerando (Output)</h2>
+            <div class="calc-panel">
+                <div class="form-group">
+                    <label><i class="fas fa-wallet"></i> Angsuran (M) per Periode</label>
+                    <div class="input-wrapper">
+                        <span class="currency-symbol" id="currency-icon">Rp</span>
+                        <input type="number" id="pembayaran" placeholder="Contoh: 1000000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-percent"></i> Tingkat Bunga (i) %</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-chart-line input-icon"></i>
+                        <input type="number" id="bunga" placeholder="Contoh: 2" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> Jumlah Periode (n)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-hashtag input-icon"></i>
+                        <input type="number" id="periode" placeholder="Contoh: 12" min="1">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="hitungDanHighlight()"><i class="fas fa-calculator"></i> Hitung</button>
+                    <button class="btn-secondary" onclick="resetForm()"><i class="fas fa-redo"></i> Reset</button>
+                </div>
+                <div id="resultBox" class="result-box">
+                    <h4>Total Nilai Sekarang (PV)</h4>
+                    <div class="result-value" id="nilaiTotal">Rp 0</div>
+                    <div class="result-details">
+                        <div><span>Total Angsuran</span><br><strong id="totalBayar">Rp 0</strong></div>
+                        <div><span>Total Diskonto</span><br><strong id="totalBunga">Rp 0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== FUNGSI HIGHLIGHT =====
+        function highlightLine(lineId) {
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+            document.getElementById(lineId).classList.add('highlight');
+        }
+
+        function highlightLines(lineIds) {
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+            lineIds.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.classList.add('highlight');
+            });
+        }
+
+        // ===== EVENT INPUT =====
+        document.getElementById('pembayaran').addEventListener('input', function() {
+            highlightLine('line1');
+        });
+        document.getElementById('bunga').addEventListener('input', function() {
+            highlightLine('line2');
+        });
+        document.getElementById('periode').addEventListener('input', function() {
+            highlightLine('line3');
+        });
+
+        // ===== FUNGSI KALKULATOR =====
+        function formatUang(angka, currency = 'Rp') {
+            return currency + ' ' + Math.round(angka).toLocaleString('id-ID');
+        }
+
+        function hitungPranumerando() {
+            let m = parseFloat(document.getElementById('pembayaran').value);
+            let rate = parseFloat(document.getElementById('bunga').value);
+            let n = parseInt(document.getElementById('periode').value);
+            let currency = 'Rp';
+
+            if (isNaN(m) || m <= 0 || isNaN(rate) || rate < 0 || isNaN(n) || n <= 0) {
+                alert('Input tidak valid!');
+                return null;
+            }
+
+            let i = rate / 100;
+            let factor;
+            if (i === 0) factor = n;
+            else factor = (1 - Math.pow(1 + i, -n)) / i;
+            let pv = m * factor * (1 + i);
+            let totalPokok = m * n;
+            let diskonto = totalPokok - pv;
+
+            document.getElementById('nilaiTotal').innerText = formatUang(pv, currency);
+            document.getElementById('totalBayar').innerText = formatUang(totalPokok, currency);
+            document.getElementById('totalBunga').innerText = formatUang(diskonto, currency);
+            document.getElementById('resultBox').classList.add('active');
+
+            return { pv, totalPokok, diskonto };
+        }
+
+        function hitungDanHighlight() {
+            highlightLines(['line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10']);
+            
+            setTimeout(() => {
+                let hasil = hitungPranumerando();
+                if (hasil) {
+                    highlightLines(['line12', 'line13', 'line14']);
+                }
+            }, 200);
+        }
+
+        function resetForm() {
+            document.getElementById('pembayaran').value = '';
+            document.getElementById('bunga').value = '';
+            document.getElementById('periode').value = '';
+            document.getElementById('resultBox').classList.remove('active');
+            highlightLines([]);
+        }
+    </script>
+</body>
+</html>
