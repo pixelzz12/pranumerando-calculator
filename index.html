@@ -39,7 +39,7 @@
             --shadow-hover: 0 20px 40px rgba(0,0,0,0.3);
             --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --custom-bg: none; /* untuk custom color */
+            --custom-bg: none;
         }
 
         body {
@@ -107,7 +107,7 @@
             animation: fadeInUp 0.6s ease-out 0.1s both;
         }
 
-        /* ===== SPLASH SCREEN (dengan partikel interaktif) ===== */
+        /* ===== SPLASH SCREEN ===== */
         #splashOverlay {
             position: fixed;
             top: 0;
@@ -1139,7 +1139,7 @@
                     <h3>Fitur Lainnya</h3>
                 </div>
                 <div class="feature-buttons">
-                    <button class="feature-btn" onclick="togglePresentasiMode()"><i class="fas fa-tv"></i> Mode Presentasi</button>
+                    <button class="feature-btn" onclick="togglePresentasiMode()"><i class="fas fa-tv"></i> Fitur Utama</button>
                     <button class="feature-btn" onclick="showInversLanjutan()"><i class="fas fa-exchange-alt"></i> Invers Lanjutan</button>
                     <button class="feature-btn" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> Ekspor CSV</button>
                     <button class="feature-btn" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Unduh PDF</button>
@@ -1182,7 +1182,7 @@
     </div>
 
     <script>
-        // ===== GALAXY BACKGROUND (p5.js) - Lebih berkilau dan interaktif =====
+        // ===== GALAXY BACKGROUND (p5.js) =====
         function sketch(p) {
             let particles = [];
             let stars = [];
@@ -1193,7 +1193,6 @@
                 canvas.parent('galaxy-canvas');
                 p.noStroke();
 
-                // Inisialisasi bintang (lebih banyak)
                 for (let i = 0; i < 400; i++) {
                     stars.push({
                         x: p.random(p.width),
@@ -1205,7 +1204,6 @@
                     });
                 }
 
-                // Inisialisasi partikel galaxy (lebih banyak)
                 for (let i = 0; i < 150; i++) {
                     particles.push({
                         x: p.random(p.width),
@@ -1218,31 +1216,25 @@
                             p.random(100, 200),
                             p.random(200, 255),
                             80
-                        ),
-                        originalColor: null
+                        )
                     });
-                    particles[i].originalColor = particles[i].color;
                 }
             };
 
             p.draw = function() {
                 p.clear();
-                p.background(0, 0, 0, 0); // transparan
+                p.background(0, 0, 0, 0);
 
-                // Gambar bintang dengan efek kedip
                 for (let star of stars) {
                     let twinkle = 0.5 + 0.5 * p.sin(p.millis() * star.twinkleSpeed + star.twinklePhase);
                     p.fill(255, star.brightness * twinkle);
                     p.ellipse(star.x, star.y, star.size * (0.8 + 0.4 * p.sin(p.millis() * 0.01)));
                 }
 
-                // Efek interaktif: partikel menjauh dari mouse
                 let mouseDist = 50;
                 for (let part of particles) {
-                    // Hitung jarak ke mouse
                     let d = p.dist(part.x, part.y, mouseX, mouseY);
                     if (d < mouseDist) {
-                        // Dorong partikel menjauh
                         let angle = p.atan2(part.y - mouseY, part.x - mouseX);
                         let force = (mouseDist - d) / mouseDist * 2;
                         part.x += p.cos(angle) * force;
@@ -1255,7 +1247,6 @@
                     part.x += part.vx;
                     part.y += part.vy;
 
-                    // Wrap around
                     if (part.x < 0) part.x = p.width;
                     if (part.x > p.width) part.x = 0;
                     if (part.y < 0) part.y = p.height;
@@ -1270,7 +1261,6 @@
 
             p.windowResized = function() {
                 p.resizeCanvas(p.windowWidth, p.windowHeight);
-                // Update posisi bintang
                 stars = [];
                 for (let i = 0; i < 400; i++) {
                     stars.push({
@@ -1285,7 +1275,6 @@
             };
         }
 
-        // Inisialisasi p5.js
         new p5(sketch);
 
         // ===== MASKOT =====
@@ -1296,9 +1285,8 @@
         mascot.addEventListener('click', function() {
             msgIndex = (msgIndex + 1) % messages.length;
             document.getElementById('mascot-tooltip').innerText = messages[msgIndex];
-            // Animasi bounce
             this.style.animation = 'none';
-            this.offsetHeight; // reflow
+            this.offsetHeight;
             this.style.animation = 'float 3s ease-in-out infinite';
         });
 
@@ -1369,7 +1357,6 @@
             buatGrafikPerbandingan(m, i, n, currency);
             buatTabelAmortisasi(m, i, n, currency);
 
-            // Tampilkan grafik dan tabel
             document.getElementById('growthChartContainer').classList.add('active');
             document.getElementById('comparisonChartContainer').classList.add('active');
             document.getElementById('amortisasiSection').classList.add('active');
@@ -1381,7 +1368,6 @@
         function hitungDanTampilkan() {
             let hasil = hitungPranumerando();
             if (hasil && !sudahConfetti) {
-                // Efek confetti
                 confetti({
                     particleCount: 150,
                     spread: 70,
@@ -1500,7 +1486,7 @@
             document.getElementById('amortisasiSection').classList.remove('active');
             if (chartInstance) chartInstance.destroy();
             if (comparisonChartInstance) comparisonChartInstance.destroy();
-            sudahConfetti = false; // reset confetti untuk sesi baru
+            sudahConfetti = false;
         }
 
         // ===== UPLOAD GAMBAR RUMUS =====
@@ -1517,7 +1503,7 @@
             }
         });
 
-        // ===== KALKULATOR INVERS LANJUTAN (PV) =====
+        // ===== KALKULATOR INVERS LANJUTAN =====
         function showInversLanjutan() {
             document.getElementById('inversLanjutanModal').classList.add('active');
         }
@@ -1702,6 +1688,38 @@
             a.click();
         }
 
+        // ===== FULL SCREEN - VERSI DIPERBAIKI =====
+        function toggleFullScreen() {
+            try {
+                if (!document.fullscreenElement) {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen();
+                    } else if (document.documentElement.webkitRequestFullscreen) {
+                        document.documentElement.webkitRequestFullscreen();
+                    } else if (document.documentElement.msRequestFullscreen) {
+                        document.documentElement.msRequestFullscreen();
+                    } else if (document.documentElement.mozRequestFullScreen) {
+                        document.documentElement.mozRequestFullScreen();
+                    } else {
+                        alert('Browser Anda tidak mendukung full screen. Tekan F11 untuk layar penuh.');
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    }
+                }
+            } catch (err) {
+                console.error('Error full screen:', err);
+                alert('Terjadi kesalahan. Gunakan F11 untuk full screen manual.');
+            }
+        }
+
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -1716,6 +1734,10 @@
 
         function cetak() {
             window.print();
+        }
+
+        function gantiTema() {
+            document.body.classList.toggle('light-theme');
         }
 
         function simpanSkenario() {
